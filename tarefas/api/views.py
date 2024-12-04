@@ -25,7 +25,7 @@ class TarefaViewSet(ModelViewSet):
         ).exists()
 
         if not in_database:
-            # Criar nova tarefa
+            
             nova_tarefa = TarefaModel(
                 titulo=serializer.validated_data['titulo'],
                 descricao=serializer.validated_data['descricao'],
@@ -34,7 +34,7 @@ class TarefaViewSet(ModelViewSet):
             )
             nova_tarefa.save()
 
-            # Retornar a resposta com os dados da nova tarefa
+            
             serializer_saida = TarefaSerializer(nova_tarefa)
             return Response({"Info": "Tarefa criada!", "data": serializer_saida.data}, status=status.HTTP_201_CREATED)
         else:
