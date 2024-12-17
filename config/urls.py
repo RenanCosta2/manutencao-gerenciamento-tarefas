@@ -28,11 +28,13 @@ router = SimpleRouter()
 router.register("users", UserProfileExampleViewSet, basename="users")
 router.register("tarefas", TarefaViewSet, basename="tarefas")
 
-
+def trigger_error(request):
+    division_by_zero = 1 / 0
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/token-auth/", views.obtain_auth_token),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('sentry-debug/', trigger_error),
 ]+router.urls
