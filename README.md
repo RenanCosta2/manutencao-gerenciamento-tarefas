@@ -10,4 +10,4 @@ Repositório destinado para o sistema de gerenciamento de tarefas. Neste sistema
 *** CHANGELOG ***
 
 - Foi adicionado validações de erros nas views personalizadas.
-- Ajustado o código para padrões de clean code.
+- Ajustado o código para padrões de clean code. 
