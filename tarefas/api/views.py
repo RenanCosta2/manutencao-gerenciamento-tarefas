@@ -2,12 +2,19 @@
 Importações do Django REST framework e das Tarefas
 """
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated
+from rest_framework.exceptions import NotFound
 from tarefas.models import TarefaModel
 from tarefas.api.serializers import TarefaSerializer
+from tarefas import services
+
+DADOS_INVALIDOS = "Dados inválidos!"
+DADO_INCORRETO = "Algum dado faltando ou errado."
+PERMISSAO = "Você não possui permissão para isso."
+AUTENTICACAO = "Você não está autenticado."
 
 
 class TarefaViewSet(ModelViewSet):
@@ -16,38 +23,18 @@ class TarefaViewSet(ModelViewSet):
     """
 
     serializer_class = TarefaSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = TarefaModel.objects.all()
 
     def create(self, request, *args, **kwargs):
+        serializer = TarefaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         try:
-            serializer = TarefaSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
 
-            hora_inicio = serializer.validated_data['hora_inicio']
-            hora_fim = serializer.validated_data['hora_fim']
+            nova_tarefa = services.create(self, serializer.validated_data)
 
-            # Verificar se o horário da nova tarefa já está ocupado
-            in_database = TarefaModel.objects.filter(
-                # Conflito se o horário de início de alguma tarefa
-                # for antes de a nova terminar
-                hora_inicio__lt=hora_fim,
-                # Conflito se o horário de fim de alguma tarefa
-                # for depois de a nova começar
-                hora_fim__gt=hora_inicio
-            ).exists()
-
-            if not in_database:
-
-                nova_tarefa = TarefaModel(
-                    titulo=serializer.validated_data['titulo'],
-                    descricao=serializer.validated_data['descricao'],
-                    hora_inicio=serializer.validated_data['hora_inicio'],
-                    hora_fim=serializer.validated_data['hora_fim'],
-                )
-                nova_tarefa.save()
-
+            if nova_tarefa:
                 serializer_saida = TarefaSerializer(nova_tarefa)
                 return Response(
                     {"Info": "Tarefa criada!", "data": serializer_saida.data},
@@ -60,21 +47,91 @@ class TarefaViewSet(ModelViewSet):
                 )
         except ValueError:
             return Response(
-                {"Erro": "Dados inválidos!"},
+                {"Erro": DADOS_INVALIDOS},
                 status=status.HTTP_409_CONFLICT
                 )
         except KeyError:
             return Response(
-                {"Erro": "Algum dado faltando ou errado."},
+                {"Erro": DADO_INCORRETO},
                 status=status.HTTP_400_BAD_REQUEST
                 )
         except PermissionDenied:
             return Response(
-                {"Erro": "Você não possui permissão para isso."},
+                {"Erro": PERMISSAO},
                 status=status.HTTP_403_FORBIDDEN
                 )
         except NotAuthenticated:
             return Response(
-                {"Erro": "Você não está autenticado."},
+                {"Erro": AUTENTICACAO},
                 status=status.HTTP_401_UNAUTHORIZED
+                )
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        except ValueError:
+            return Response(
+                {"Erro": DADOS_INVALIDOS},
+                status=status.HTTP_409_CONFLICT
+                )
+        except KeyError:
+            return Response(
+                {"Erro": DADO_INCORRETO},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        except PermissionDenied:
+            return Response(
+                {"Erro": PERMISSAO},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        except NotAuthenticated:
+            return Response(
+                {"Erro": AUTENTICACAO},
+                status=status.HTTP_401_UNAUTHORIZED
+                )
+        except NotFound:
+            return Response(
+                {"Erro": "Tarefa não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+                )
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(
+                instance,
+                data=request.data,
+                partial=True
+                )
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        except ValueError:
+            return Response(
+                {"Erro": DADOS_INVALIDOS},
+                status=status.HTTP_409_CONFLICT
+                )
+        except KeyError:
+            return Response(
+                {"Erro": DADO_INCORRETO},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        except PermissionDenied:
+            return Response(
+                {"Erro": PERMISSAO},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        except NotAuthenticated:
+            return Response(
+                {"Erro": AUTENTICACAO},
+                status=status.HTTP_401_UNAUTHORIZED
+                )
+        except NotFound:
+            return Response(
+                {"Erro": "Tarefa não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
                 )
