@@ -15,4 +15,3 @@ class UserProfileExampleViewSet(ModelViewSet):
     serializer_class = UserProfileExampleSerializer
     permission_classes = [AllowAny]
     queryset = UserProfileExample.objects.all()
-    http_method_names = ['get', 'put']
