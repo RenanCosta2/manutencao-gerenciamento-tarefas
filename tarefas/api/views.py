@@ -32,7 +32,7 @@ class TarefaViewSet(ModelViewSet):
 
         try:
 
-            nova_tarefa = services.create(self, serializer.validated_data)
+            nova_tarefa = services.create(serializer.validated_data)
 
             if nova_tarefa:
                 serializer_saida = TarefaSerializer(nova_tarefa)
