@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 from rest_framework.exceptions import NotFound
 from tarefas.models import TarefaModel
 from tarefas.api.serializers import TarefaSerializer
-from tarefas import services
+from tarefas.services import TarefaService
 
 DADOS_INVALIDOS = "Dados inválidos!"
 DADO_INCORRETO = "Algum dado faltando ou errado."
@@ -25,6 +25,7 @@ class TarefaViewSet(ModelViewSet):
     serializer_class = TarefaSerializer
     permission_classes = [IsAuthenticated]
     queryset = TarefaModel.objects.all()
+    service = TarefaService()
 
     def create(self, request, *args, **kwargs):
         serializer = TarefaSerializer(data=request.data)
@@ -32,7 +33,7 @@ class TarefaViewSet(ModelViewSet):
 
         try:
 
-            nova_tarefa = services.create(serializer.validated_data)
+            nova_tarefa = self.service.create(data=serializer.validated_data)
 
             if nova_tarefa:
                 serializer_saida = TarefaSerializer(nova_tarefa)
