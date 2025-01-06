@@ -1,0 +1,27 @@
+@startuml gerenciamento_de_tarefas
+
+class Tarefa {
+    +titulo : String
+    +descricao : String
+    +hora_inicio : Date
+    +hora_fim : Date
+    +toString() : String
+}
+
+class PerfilUsuario {
+    +numero_telefone : String
+    +endereco : String
+    +data_nascimento : Date
+    +usuario : Usuario
+}
+
+class Usuario {
+    +nome : String
+    +email : String
+    +senha : String
+}
+
+Tarefa --> PerfilUsuario : "pode ser atribuída a"
+PerfilUsuario --> Usuario : "tem um relacionamento de um para um com"
+
+@enduml
